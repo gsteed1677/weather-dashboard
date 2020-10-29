@@ -37,21 +37,28 @@ $(".clickSearch").on("click", function(e) {
   }
 
 
-// var title =$("<h3>").addClass("card-title").text(data.name + "")
 
 
 
 
 
+// $("#today").empty();
 
-// $(".lastCity").on("click", "li", function() {
-//     callApi($(this).text());
-// })
+// var title = $("<h3>").createClass("card-title").text(data.name);
+// var card = $("<div>").addClass("card");
+// var wind = $("<p>").addClass("card-text").text("Wind Speed " + data.wind.speed + "MPH");
+// var humid = $("<p>").addClass("card-text").text("Humidity: " + data.main.humidity + "%");
+// var temp = $("<p>").addClass("card-text").text("Temperature " + data.main.temp + "F");
+// var cardBody = $("<div>").addClass("card-body");
+// var img = $("<img>").attr("src", "http://openweathermap.org/img/w" + data.weather[0].icon + ".png");
 
-// function makeRow(text) {
-//     var li = $("<li>").addClass("list-group-item list-group-item-action").text(text);
-//     $(".lastCity").append(li);
-// }
+// title.append(img);
+// cardBody.append(title, temp, humid, wind);
+// card.append(cardBody);
+// $("#today").append(card);
+
+
+
 
 
 
