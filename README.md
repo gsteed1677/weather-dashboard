@@ -9,5 +9,3 @@ I will also store the past searches in local storage so you can refer back to th
 Git Hub page:
 
 https://github.com/gsteed1677/weather-dashboard
-
-You may notice in the code that I did the fetch in two different ways. i had issues with the AJAX when starting the project but learned more with a tutor and in class and built the rest of it out with that method.
