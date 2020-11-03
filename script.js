@@ -1,78 +1,35 @@
-//document to pull in all js before all loads
+const apiKey = "637169d507746a6cc76b508c540669a2";
+var currWeatherDiv = $("#currentForecast");
+var forecastDiv = $("#fiveDayForecast");
+var searchArray;
 
-$(document).ready(function() {
-var key = '637169d507746a6cc76b508c540669a2';
-var forecastDiv = $("#weatherForecast");
-
-if (localStorage.getItem("citySearch")) {
-    citiesArray = JSON.parse(localStorage.getItem("citySearch"));
-    writeSearchHistory(citiesArray);
+if (localStorage.getItem("localWeatherSearches")) {
+    searchArray = JSON.parse(localStorage.getItem("localWeatherSearches"));
+    writeSearchHistory(searchArray);
 } else {
-    citiesArray = [];
+    searchArray = [];
 };
 
 
-//created function for on click button event
-$(".clickSearch").on("click", function(e) {
-    console.log("button clicked!");
-    e.preventDefault()
-    var citySearch = $("#textInput").val();
-    console.log(citySearch);
-    //clear input box
-    $("#textInput").val("")
-    
-    callApi(citySearch);
-    fiveDayForecast(citySearch);
-})
+function returnCurrentWeather(cityName) {
+    let queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&APPID=${apiKey}`;
 
+    $.get(queryURL).then(function(response){
+        let currTime = new Date(response.dt*1000);
+        let weatherIcon = `https://openweathermap.org/img/wn/${response.weather[0].icon}@2x.png`;
 
-// //Local storage 
+        currWeatherDiv.html(`
+        <h2>${response.name}, ${response.sys.country} (${currTime.getMonth()+1}/${currTime.getDate()}/${currTime.getFullYear()})<img src=${weatherIcon} height="70px"></h2>
+        <p>Temperature: ${response.main.temp} F</p>
+        <p>Humidity: ${response.main.humidity}%</p>
+        <p>Wind Speed: ${response.wind.speed} MPH</p>
+        `, returnUVIndex(response.coord))
+        createHistoryButton(response.name);
+    })
+};
 
-
-//call api and fetch data to be used
-function callApi(citySearch) {
-    fetch(
-      'https://api.openweathermap.org/data/2.5/weather?q=' +
-        citySearch +
-        '&appid=' +
-        key + 
-        '&units=imperial'
-    )
-      .then(function (response) {
-        return response.json();
-      }) // Convert data to json
-      .then(function (data) {
-        console.log(data);
-
-        //clear container for new search
-        $("#today").empty();
-
-        //var for html creation and attributes
-        var title = $("<h3>").addClass("card-title").text(data.name);
-        var card = $("<div>").addClass("card");
-        var wind = $("<p>").addClass("card-text").text("Wind Speed " + data.wind.speed + " MPH");
-        var humid = $("<p>").addClass("card-text").text("Humidity: " + data.main.humidity + " %");
-        var temp = $("<p>").addClass("card-text").text("Temperature " + data.main.temp + " F");
-        var cardBody = $("<div>").addClass("card-body");
-        var img = $("<img>").attr("src", "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png");
-
-        title.append(img);
-        cardBody.append(title, temp, humid, wind);
-        card.append(cardBody);
-        $("#today").append(card);
-
-        //You could call a function that adds your search term to the array of search history
-      })
-      .catch(function () {
-        // catch any errors
-      });
-
-    }
-
-
-//new function for five day forecast - using AJAX from last weeks class
-function fiveDayForecast(citySearch) {
-    let queryURL = `https://api.openweathermap.org/data/2.5/forecast?q=${citySearch}&units=imperial&APPID=${key}`;
+function returnWeatherForecast(cityName) {
+    let queryURL = `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&units=imperial&APPID=${apiKey}`;
 
     $.get(queryURL).then(function(response){
         let forecastInfo = response.list;
@@ -100,11 +57,62 @@ function fiveDayForecast(citySearch) {
     })
 };
 
+// The current UV index is collected at the same time as the current weather
+// by making use of the searched city's returned coordinates
+function returnUVIndex(coordinates) {
+    let queryURL = `https://api.openweathermap.org/data/2.5/uvi?lat=${coordinates.lat}&lon=${coordinates.lon}&APPID=${apiKey}`;
+
+    $.get(queryURL).then(function(response){
+        let currUVIndex = response.value;
+        let uvSeverity = "green";
+        let textColour = "white"
+        //Change UV background based on severity
+        //Also change text colour for readability
+        if (currUVIndex >= 8) {
+            uvSeverity = "red";
+        } else if (currUVIndex >= 3) {
+            uvSeverity = "yellow";
+            textColour = "black"
+        }
+        currWeatherDiv.append(`<p>UV Index: <span class="text-${textColour} uvPadding" style="background-color: ${uvSeverity};">${currUVIndex}</span></p>`);
+    })
+}
+
+function createHistoryButton(cityName) {
+    // Check if the button exists in history, and if it does, exit the function
+    var citySearch = cityName.trim();
+    var buttonCheck = $(`#previousSearch > BUTTON[value='${citySearch}']`);
+    if (buttonCheck.length == 1) {
+      return;
+    }
+    
+    if (!searchArray.includes(cityName)){
+        searchArray.push(cityName);
+        localStorage.setItem("localWeatherSearches", JSON.stringify(searchArray));
+    }
+
+    $("#previousSearch").prepend(`
+    <button class="btn btn-light cityHistoryBtn" value='${cityName}'>${cityName}</button>
+    `);
+}
+
+function writeSearchHistory(array) {
+    $.each(array, function(i) {
+        createHistoryButton(array[i]);
+    })
+}
 
 
-  // local storage and dom function
-  // 1. need add search history
-  // 2. crea
 
+$("#submitCity").click(function() {
+    event.preventDefault();
+    let cityName = $("#cityInput").val();
+    returnCurrentWeather(cityName);
+    returnWeatherForecast(cityName);
+});
 
-  })
+$("#previousSearch").click(function() {
+    let cityName = event.target.value;
+    returnCurrentWeather(cityName);
+    returnWeatherForecast(cityName);
+})
