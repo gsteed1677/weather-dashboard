@@ -1,7 +1,11 @@
+//global variables
+
 const apiKey = "637169d507746a6cc76b508c540669a2";
 var currWeatherDiv = $("#currentForecast");
 var forecastDiv = $("#fiveDayForecast");
 var searchArray;
+
+// local storage for weather searches
 
 if (localStorage.getItem("localWeatherSearches")) {
     searchArray = JSON.parse(localStorage.getItem("localWeatherSearches"));
@@ -10,6 +14,7 @@ if (localStorage.getItem("localWeatherSearches")) {
     searchArray = [];
 };
 
+// returning current weather with api
 
 function returnCurrentWeather(cityName) {
     let queryURL = `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=imperial&APPID=${apiKey}`;
@@ -57,8 +62,7 @@ function returnWeatherForecast(cityName) {
     })
 };
 
-// The current UV index is collected at the same time as the current weather
-// by making use of the searched city's returned coordinates
+// searching the api for coordinates and using them to set the UV index
 function returnUVIndex(coordinates) {
     let queryURL = `https://api.openweathermap.org/data/2.5/uvi?lat=${coordinates.lat}&lon=${coordinates.lon}&APPID=${apiKey}`;
 
@@ -78,8 +82,10 @@ function returnUVIndex(coordinates) {
     })
 }
 
+//new function for search history
+
 function createHistoryButton(cityName) {
-    // Check if the button exists in history, and if it does, exit the function
+    // Search for a button in history, and if it does, exit the function
     var citySearch = cityName.trim();
     var buttonCheck = $(`#previousSearch > BUTTON[value='${citySearch}']`);
     if (buttonCheck.length == 1) {
@@ -102,7 +108,7 @@ function writeSearchHistory(array) {
     })
 }
 
-
+//event listners for click function
 
 $("#submitCity").click(function() {
     event.preventDefault();
@@ -111,6 +117,8 @@ $("#submitCity").click(function() {
     returnWeatherForecast(cityName);
 });
 
+
+//listener for previous search
 $("#previousSearch").click(function() {
     let cityName = event.target.value;
     returnCurrentWeather(cityName);
